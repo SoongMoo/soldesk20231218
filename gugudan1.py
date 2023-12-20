@@ -1,0 +1,11 @@
+startDan = int(input("시작단을 숫자로 입력해 주세요. : "))
+endDan = int(input("마지막단을 숫자로 입력해 주세요. : "))
+startGop = int(input("시작곱을 숫자로 입력해 주세요. : "))
+endGop = int(input("마지막곱을 숫자로 입력해 주세요. : "))
+dan = startDan
+while dan <= endDan:
+    gop = startGop
+    while gop <= endGop:
+        print(f"{dan} * {gop} = {dan * gop}")
+        gop += 1
+    dan += 1
