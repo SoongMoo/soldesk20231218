@@ -1,0 +1,227 @@
+관계형 데이터베이스 시스템 : RDBMS
+oracle, my-sql,  MS-SQL, mariadb, postgresql, IBM-DB2,...
+언어 : sql  : ISO  : 90%
+
+# no - sql : 몽고디비,...
+pandas의 DataFrame과 같다.
+{ "name" : ["이숭무", "이상범","이장범" ,"오연의"],
+  "age" : [24,30,35]  
+} : 
+# DataFrame에서 하나의 행이 되는 값(Series)이 도큐먼트
+# DataFrame은 컬렉션이라고 할 수 있다.
+
+# 도큐먼트는 json과 같다
+{ "name" : ["이숭무", "이상범","이장범"] }
+
+#컬렉션은 관계형 데이터베이스에서 table과 비슷하다.
+# no-sql에서는 컬렉션에 있는 도큐먼트의 크기는 서로 달라도 된다.
+
+실행 : sysdm.cpl ,3
+
+환경변수에 있는 path에 추가
+C:\Program Files\MongoDB\Server\5.0\bin
+
+PowerShell에서 실행
+서버 실행 : mongod
+서버 접속 : mongo
+
+관리자로 이동
+> use admin
+
+사용자 계정 만들기
+> db.createUser({user:'rhee',pwd:'1234',roles:['root']})
+> exit
+
+PowerShell에서 실행
+mongo admin -u rhee -p 1234
+
+> use video # 사용하려는 데이터베이스
+> movie={"title":"star wars","director":"george" ,"year":1997} # 도큐먼트
+> db.movies.insertOne(movie) # 컬렉션에 도큐먼트 저장
+insert into movies(title, director, year)
+values('star wars', 'george' , 1997)
+
+> db.movies.find() # 컬렉션에 있는 내용 출력
+select * from movies
+
+> db.movies.drop()
+delete from movies
+
+>db.movies.insertOne({"title":"star wars","director":"george" ,"year":1997})
+
+> db.movies.findOne({"title" : "star wars"})
+select * from movies
+where title = 'star wars'
+
+# 하나만 변경 : 첫번째 도큐먼트만 변경
+# 갱신은 키가 있으면 수정이 되고 키가 없으면 추가가 된다. 
+> db.movies.updateOne({'title' : 'star wars'},
+		      {$set : {'title' : 'star wars- IV'}})
+update movies
+set title = 'star wars- IV'
+where title = 'star wars'
+> db.movies.find()
+> db.movies.updateOne({'title' : 'star wars'},
+		      {$set : { 'reviews':[]}})
+> db.movies.find()
+{ "_id" : ObjectId("659b6d4edc6de9da74872d00"), "title" : "star wars- IV", "director" : "george", "year" : 1997 }
+{ "_id" : ObjectId("659b6dcddc6de9da74872d01"), "title" : "star wars", "director" : "george", "year" : 1997, "reviews" : [ ] }
+
+삭제 
+> db.movies.deleteOne({'title' : 'star wars'})
+delete from movies
+where title = 'star wars'
+> db.movies.find()
+# 3장 : 생성, 갱신, 삭제
+> db.movies.insertOne({"title" : "Stand by me"})
+> db.movies.find()
+> db.movies.drop()
+> db.movies.find()
+### 여러개의 데이터를 삽입
+> db.movies.insertOne([{"title" : "Stand by me"}]) # 오류 발생([]사용x)
+> db.movies.insertMany([{"title" : "Stand by me"}])
+> db.movies.find()
+{ "_id" : ObjectId("659b8918dc6de9da74872d08"), "title" : "Stand by me" }
+> db.movies.drop()
+> db.movies.find()
+
+# 중복된 id는 저장되지 않는다.
+> db.movies.insertMany([{"_id": 0, "title": "Top Gun"}, 
+		       {"_id": 1, "title": "백투더 퓨처"},
+		       {"_id": 2, "title": "Gremnlins"},
+		       {"_id": 4, "title": "Aliens"}])
+> db.movies.insertMany([{"_id": 5, "title": "Top Gun"}, 
+		       {"_id": 6, "title": "백투더 퓨처"},
+		       {"_id": 6, "title": "Gremnlins"},
+		       {"_id": 7, "title": "Aliens"}])
+> db.movies.find()
+# id를 이용하거나 속성을 이용해서 삭제가 가능하다.
+# 하나의 도큐먼트 삭제
+> db.movies.deleteOne({'_id' : 4})
+delete from movies
+where _id = 4
+
+> db.movies.find()
+# 여러개의 도큐먼트 삭제
+> db.movies.deleteMany({"title": "Top Gun"})
+delete from movies
+where title = 'Top Gun'
+
+> db.movies.find()
+{ "_id" : 1, "title" : "백투더 퓨처" }
+{ "_id" : 2, "title" : "Gremnlins" }
+{ "_id" : 6, "title" : "백투더 퓨처" }
+# 같은 데이터가 여러개 있어도 첫번째에 있는 데이터만 삭제
+> db.movies.deleteOne({"title" : "백투더 퓨처"})
+> db.movies.find()
+{ "_id" : 2, "title" : "Gremnlins" }
+{ "_id" : 6, "title" : "백투더 퓨처" }
+
+# 컬렉션에 있는 모든 도큐먼트 삭제
+> db.movies.deleteMany({}) # 조건부가 있어야 한다.
+> db.movies.drop()
+> db.movies.find()
+
+# 도큐먼트 갱신
+> db.people.drop()
+> db.people.insertOne({ "_id" : ObjectId(), 
+		     "name" : "joe", 
+		     "friends" : 32,
+		     "enemies" : 2})
+> var joe = db.people.findOne({"name" : "joe"})
+### 서브 듀큐먼트 만들기
+> joe.relationships = {"friends" : joe.friends , "enemies" : joe.enemies }
+> joe
+> joe.username = joe.name
+joe
+> joe
+> delete joe.friends
+> joe
+> delete joe.name
+> joe
+> delete joe.enemies
+> joe
+> db.people.replaceOne({"name" : "joe"}, joe)
+> db.people.findOne({"username" : "joe"})
+{
+        "_id" : ObjectId("659b9388dc6de9da74872d09"),
+        "relationships" : {
+                "friends" : 32,
+                "enemies" : 2
+        },
+        "username" : "joe"
+}
+> db.people.updateOne({"username" : "joe"},
+		      {$set : {"age" : 20}})
+> db.people.findOne({"username" : "joe"})
+> var joe = db.people.findOne({"username" : "joe"})
+> joe.age++
+> joe
+{
+        "_id" : ObjectId("659b9388dc6de9da74872d09"),
+        "relationships" : {
+                "friends" : 32,
+                "enemies" : 2
+        },
+        "username" : "joe",
+        "age" : 21
+}
+> db.people.replaceOne({"username" : "joe"}, joe)
+> db.people.replaceOne({"name" : "joe"}, joe)
+{ "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
+> db.people.replaceOne({"_id" : ObjectId("659b9388dc6de9da74872d09")},
+		       joe)
+# 갱신 연산자.
+# inc 연산자 : 증감 연산자.
+> db.people.findOne()
+{
+        "_id" : ObjectId("659b9388dc6de9da74872d09"),
+        "relationships" : {
+                "friends" : 32,
+                "enemies" : 2
+        },
+        "username" : "joe",
+        "age" : 21
+}
+> db.people.updateOne({"username" : "joe"},
+  {"$inc" : {"age" : 2}
+})
+update people
+set age = age + 2
+where username = 'joe'
+> db.people.findOne()
+{
+        "_id" : ObjectId("659b9388dc6de9da74872d09"),
+        "relationships" : {
+                "friends" : 32,
+                "enemies" : 2
+        },
+        "username" : "joe",
+        "age" : 23
+}
+# set연산자 : 필드(속성:키)가 없는 경우 필드가 추가
+> db.people.updateOne({"username" : "joe"} ,
+		{$set : {"location" : "서울"}})
+> db.people.findOne()
+> db.people.updateOne({"username" : "joe"} ,
+		{$set : {"favorite book" : "war and peace"}})
+> db.people.findOne() 
+> db.people.updateOne({"username" : "joe"} ,
+		{$set : {"favorite book" : "war and peace"}})
+> db.people.updateOne({"_id" : ObjectId("659b9388dc6de9da74872d09")} ,
+		 {$set : {"favorite book" : "Green Eggs and Ham"}})
+> db.people.updateOne({"username" : "joe"} ,
+		{$set : {"favorite book" : ["war and peace"
+			  	       ,'Green Eggs and Ham',	
+				      "Car's Cadle"]
+}})
+> db.people.findOne()
+# $unset : 필드 삭제
+> db.people.updateOne({"username" : "joe"} ,
+		{$unset : {"favorite book" : 1}})
+> db.people.findOne()
+> db.people.updateOne({"relationships.friends" : 32},
+	                   {$inc : {"relationships.enemies" : 1}})
+# inc연산자나 set연산자를 사용하지 않아 오류
+> db.people.updateOne({"relationships.friends" : 32},
+	                   {"relationships.enemies" : 1})
