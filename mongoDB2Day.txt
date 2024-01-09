@@ -338,13 +338,131 @@ select * from users
 where mod(age, 5) != 1
 > db.users.find({"age" : {"$not" : {"$mod": [5, 1]}}})
 
+### 형 특정 쿼리
+### null
+> db.c.insertMany([
+  { "_id": ObjectId(), "y": null},
+  { "_id": ObjectId(), "y": 1, },
+  { "_id": ObjectId(), "y": 2, }
+])
+select * from c
+where y is null
+> db.c.find({"y" : null})
+> db.c.find({"z" : null})
+{ "_id" : ObjectId("4b2b9f67a1f631733d917a7a"), "y" : null }
+{ "_id" : ObjectId("4b2b9f67a1f631733d917a7b"), "y" : 1 }
+{ "_id" : ObjectId("4b2b9f67a1f631733d917a7c"), "y" : 2 }
+
+# 필드가 존재하는 경우에만 출력
+> db.c.find({"z" : { "$eq" : null , "$exists" : true}})
+> db.c.find({"y" : { "$eq" : null , "$exists" : true}})
+
+# 배열에 쿼리하기
+> db.food.insertOne({"fruit": ["apple","banana","peach"]})
+> db.food.find()
+> db.food.find({"fruit" : "banana"})
+
+# 2개이상의 요소가 일치하는 배열을 찾을 때
+> db.food.insertMany([ {"fruit": ["apple","kumpuat","orange"]},
+	   	     {"fruit": ["cherry","banana"  ,"apple" ]} ])
+> db.food.find({"fruit" : "banana"})
+select * from
+where  fruit = "apple" and fruit = "banana"
+> db.food.find({"fruit" : { "$all" : ["apple", "banana"] }})
+> db.food.find({"fruit" : { "$all" : ["apple", "orange"] }})
+# 배열 요소의 순서가 일치하는 경우
+> db.food.find({"fruit": ["apple","kumpuat","orange"]})]
+# 배열 요소의 순서가 일치하지 않는 경우
+> db.food.find({"fruit": ["apple","orange","kumpuat"]})
+# 요소의 순서와 상관없이 요소가 있는 경우에 출력
+> db.food.find({"fruit" : { "$all" : ["apple","orange","kumpuat"] }})
+
+# index가 2인 요소가 peach인것만
+> db.food.find({"fruit" : "peach"})
+> db.food.find({"fruit.2" : "peach"})
+{ "_id" : ObjectId("659ce3932b63c0681a4ad6e0"), "fruit" : [ "apple", "banana", "peach" ] }
+> db.food.find({"fruit.1" : "peach"})
+
+> db.food.updateOne(
+  {"fruit.2": "peach"},
+  {"$push": {"fruit": "kiwi"}}
+)
+# 배열의 사이즈로 
+> db.food.find({"fruit" : {$size : 3}})
+> db.food.find({"fruit" : {$size : 4}})
+# 배열 갱신
+> db.food.update({"fruit":"banana"}, {"$push" : {"fruit" : "strawberry"}}  )
+> var criteria = {"fruit":"banana"}
+> db.food.update(criteria, {"$push" : {"fruit" : "strawberry"} }  )
+
+> var criteria = {"fruit":"kumpuat"}
+> db.food.update(
+ criteria,
+ {
+    "$push": {"fruit": "strawberry"},
+    "$inc": {"size": 1}
+ }
+)
+
+# size필드의 값이 1보다 큰 것만 출력
+select * from food
+where size >= 1
+> db.food.find({"size" : {"$gte" : 1}})
+
+# $Slice연산자.
+> db.blog.posts.findOne({"title" : "A blog post"})
+# 2개뛰고 2개 가져오기 
+> db.blog.posts.findOne({"title" : "A blog post"}, {"contents" : {$slice : [2, 2]}})
+# 위에서 두개 가져오기
+> db.blog.posts.findOne({"title" : "A blog post"}, {"contents" : {$slice : 2}})
+# 밑에서 두개 가져오기
+> db.blog.posts.findOne({"title" : "A blog post"}, {"contents" : {$slice : -2}})
+#  "name"이 "jang"사람의 댓글만 가져오기
+> db.blog.posts.findOne({"contents.name" : "jang"})
+> db.blog.posts.findOne({"contents.name" : "jang"}, {"contents.$" : 1})
+
+# 배열 및 범위쿼리의 상호 작용
+> db.collectionName.insertOne({ 'x': 5 })
+> db.collectionName.insertOne({ 'x': 15 })
+> db.collectionName.insertOne({ 'x': 25 })
+> db.collectionName.insertOne({ 'x': [5, 25]})
+> db.collectionName.find()
+
+select * from collectionName
+where 'x' > 10 and 'x' < 20
+> db.collectionName.find({'x' : {"$gt" : 10 , "$lt" : 20}})
+[ 5, 25 ] 는 둘다 5는 20보다 작다에 들어가고 25는 10보다 크다 들어가 때문에
+배열이므로 원하지 않는 데이터가 같이 출력
+
+> db.collectionName.find({'x' : {"$elemMatch" :   {"$gt" : 10 , "$lt" : 20}  } })
+'x': 15는 배열이 아니라 출력이 되지 않는다.
+
+> db.collectionName.insertOne({ 'x': [13, 18]})
+> db.collectionName.find({'x' : {"$elemMatch" :   {"$gt" : 10 , "$lt" : 20}  } })
+# 배열안에 있는 값이 모두 조건에 만족해야 출력
 
 
+# 내장 도큐먼트에 쿼리
+> db.blog.posts.findOne({"title" : "A blog post"})
+> db.blog.posts.find({"contents.name" : "joe", "contents.email" : "joe@example.com"  })
+> db.blog.posts.find({"contents" : {"name" : "joe" ,  "email" : "joe@example.com"} })
+# 결과가 없다
+> db.blog.posts.find({"top10" : {"name" : "이숭무" , "rating" : {"$lt" : 5}}})
+# 결과가 없다
+> db.blog.posts.find({"top10.name" : "이숭무", "top10.rating" : {"$lt" : 5}})
 
-
-
-
-
-
-
+# 제한, 건너뛰기, 정렬
+> db.c.find()
+> db.c.find().limit(2)
+> db.c.find().skip(2)
+> db.c.find().skip(1)
+> db.users.find()
+> db.users.find().sort({"age" : 1})  # 오름 차순
+> db.users.find().sort({"age" : -1}) # 내림차순
+> db.users.find().sort({"name" : 1 , "age" : -1})
+select * from users
+order by name asc, age desc
+> db.users.find().sort({"age" : 1}).limit(2) 
+> db.users.find().limit(2) .sort({"age" : 1})
+> db.users.find().limit(2) .sort({"age" : 1}).skip(1)
 
