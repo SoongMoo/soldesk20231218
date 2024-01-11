@@ -347,11 +347,11 @@ from companies
 order by funding_rounds.funded_year asc, funding_rounds.funded_month asc, funding_rounds.funded_day asc
 
 find로 출력
-> db.companies.find({}, {"name" : 1, "funding_rounds.raised_amount" : 1, "funding_rounds.funded_year" : 1, "_id" : 0})
-	.sort({"funding_rounds.funded_year" : 1, "funding_rounds.funded_month" : 1, "funding_rounds.funded_day" : 1})
+> db.companies.find({}, {"name" : 1, "funding_rounds.raised_amount" : 1, "funding_rounds.funded_year" : 1, "_id" : 0}).sort({"funding_rounds.funded_year" : 1, "funding_rounds.funded_month" : 1, "funding_rounds.funded_day" : 1})
 { "funding_rounds" : [ { "raised_amount" : 27500000, "funded_year" : 2006 }, 
 		   { "raised_amount" : 15000000, "funded_year" : 2008 } ] }
-
+{ "name" : "Facebook", "funding_rounds" : [ { "raised_amount" : 27500000, "funded_year" : 2006 }, 
+				     { "raised_amount" : 15000000, "funded_year" : 2008 } ] }
 > db.companies.aggregate([
     {$match : {"funding_rounds": {$ne: []}}}
     {$unwind: "$funding_rounds"},
@@ -366,6 +366,8 @@ find로 출력
         }
     }}
 ])
+{ "_id" : { "company" : "Facebook" }, "funding" : [ { "amount" : 27500000, "year" : 2006 }, { "amount" : 27500000, "year" : 2006 },
+				            { "amount" : 15000000, "year" : 2008 }, { "amount" : 15000000, "year" : 2008 } ] }
 
 
 
