@@ -12,7 +12,7 @@ import cv2
 import pathlib
 from pathlib import Path
 
-loaded_model = keras.models.load_model("ma.h5")
+loaded_model = keras.models.load_model("C:/Flobot/ma.h5")
 
 data_dir = Path('C:/Flobot/image')
 data_dir = pathlib.Path(data_dir)
