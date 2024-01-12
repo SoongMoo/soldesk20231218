@@ -1,0 +1,52 @@
+jsp  
+M  : model   :  DTO/VO    
+	       DAO 
+V   : view     : jsp
+C   : controller : FrontController
+                      BackendController
+           주소 : search.naver?query=jsp
+                                                      80                     8080
+웹브라우져 ------------------------------> w/s   <----------> WAS
+  client                                            html                  tomcat
+                                                  front-end              back-end
+                                                                 server                                    
+xxx.html      
+w/s : web server : apache
+WAS  : web application server : tomcat
+jsp -> java -> class
+                  servlet   ===> html
+apache-tomcat
+
+                     search.naver?query=jsp
+was   ---------- Front_Controller  ===> view(jsp)
+                              ||                DTO
+                      Back_Controller <======> DAO  <===> DB
+ query=jsp
+ String query = request.getParameter("query")
+
+jsp MVC  
+M  : model   :  DTO/VO    
+	       DAO 
+V   : view     : jsp
+C   : controller : FrontController
+                      BackendController
+
+spring MVC
+Model : DTO : domain 
+           DAO : repository , mapper
+V   : view     : jsp
+C : controller : FrontController : controller
+                    BackendController : service
+
+spring boot MVC
+Model : DTO : domain 
+           DAO : repository , mapper
+V   : view     : html
+C : controller : FrontController : controller
+                    BackendController : service
+
+jsp => request.getParameter : spring => Command
+jsp => request.setAttribute : spring => model
+                           
+
+       
